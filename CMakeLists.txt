@@ -58,6 +58,7 @@ add_subdirectory(MCGeantAnalysis)
 add_subdirectory(PhysicAnalysis)
 add_subdirectory(CosmicAnalysis)
 add_subdirectory(Imaging)
-
+add_subdirectory(OPSPreselection)
+add_subdirectory(OPSAnalysis)
 
 
