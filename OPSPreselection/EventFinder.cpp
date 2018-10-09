@@ -61,10 +61,6 @@ bool EventFinder::exec()
 {
 
   if (auto timeWindow = dynamic_cast<const JPetTimeWindow* const>(fEvent)) {
-    //uint n = timeWindow->getNumberOfEvents();
-    // for(uint i=0;i<n;++i){
-    //   fHitVector.push_back(dynamic_cast<const JPetHit&>(timeWindow->operator[](i)));
-    // }
 
     vector<JPetEvent> events = buildEvents(*timeWindow);
 
