@@ -19,6 +19,10 @@
 #include <JPetWriter/JPetWriter.h>
 #include "UniversalFileLoader.h"
 #include "TimeWindowCreator.h"
+#include <algorithm>
+#include <vector>
+#include <stack>
+#include <queue>
 
 using namespace jpet_options_tools;
 
@@ -112,6 +116,11 @@ bool TimeWindowCreator::init()
     ->GetXaxis()->SetTitle("Signal Channels in Time Slot");
     getStatistics().getHisto1D("sig_ch_per_time_slot")
     ->GetYaxis()->SetTitle("Number of Time Slots");
+
+    getStatistics().createHistogram(
+                                    new TH1F("rejected_sigchs", "Was SigChannel rejected?",
+                                             2, -0.5, 1.5)
+                                    );
   }
   return true;
 }
@@ -125,6 +134,8 @@ bool TimeWindowCreator::exec()
     if (fSaveControlHistos)
       getStatistics().getHisto1D("sig_ch_per_time_slot")->Fill(kTDCChannels);
 
+    std::vector<JPetSigCh> sigChs;
+    
     // Loop over all TDC channels in file
     auto tdcChannels = event->GetTDCChannelsArray();
     for (int i = 0; i < kTDCChannels; ++i) {
@@ -144,8 +155,14 @@ bool TimeWindowCreator::exec()
       // Ignore irrelevant channels
       if (!filter(tombChannel)) continue;
 
+      sigChs.clear();
+      double timeCalib = UniversalFileLoader::getConfigurationParameter(
+                                                                        fTimeCalibration,
+                                                                        tombChannel.getChannel()
+                                                                        );
+      
       // Loop over all Signal Channels in current TOMBChannel
-      const int kSignalChannels = tdcChannel->GetHitsNum();
+      int kSignalChannels = tdcChannel->GetLeadHitsNum();
       for (int j = 0; j < kSignalChannels; ++j) {
 
         // Check for unreasonable times
@@ -154,29 +171,91 @@ bool TimeWindowCreator::exec()
         // data but shoudl not exceed 1 ms, i.e. 1.e6 ns)
         if (tdcChannel->GetLeadTime(j) > fMaxTime ||
             tdcChannel->GetLeadTime(j) < fMinTime ) continue;
-        if (tdcChannel->GetTrailTime(j) > fMaxTime ||
-            tdcChannel->GetTrailTime(j) < fMinTime ) continue;
-
+        
         // Create Signal Channels for leading and trailing edge
         JPetSigCh sigChTmpLead = generateSigCh(tombChannel, JPetSigCh::Leading);
-        JPetSigCh sigChTmpTrail = generateSigCh(tombChannel, JPetSigCh::Trailing);
 
-        // Set the times in ps [raw times are in ns]
-        // and add Time Calibration [also in ns]
         sigChTmpLead.setValue(
           1000.*(tdcChannel->GetLeadTime(j)
-                 + UniversalFileLoader::getConfigurationParameter(
-                   fTimeCalibration, sigChTmpLead.getTOMBChannel().getChannel())));
+                 + timeCalib));
+
+        sigChs.push_back(sigChTmpLead);
+      }
+      
+      kSignalChannels = tdcChannel->GetTrailHitsNum();
+      for (int j = 0; j < kSignalChannels; ++j) {
+        
+        if (tdcChannel->GetTrailTime(j) > fMaxTime ||
+            tdcChannel->GetTrailTime(j) < fMinTime ) continue;
+        
+        JPetSigCh sigChTmpTrail = generateSigCh(tombChannel, JPetSigCh::Trailing);
+        
         sigChTmpTrail.setValue(
           1000.*(tdcChannel->GetTrailTime(j)
-                 + UniversalFileLoader::getConfigurationParameter(
-                   fTimeCalibration, sigChTmpTrail.getTOMBChannel().getChannel())));
+                 + timeCalib));
 
-        // Save created Signal Channels
-        fOutputEvents->add<JPetSigCh>(sigChTmpLead);
-        fOutputEvents->add<JPetSigCh>(sigChTmpTrail);
+        sigChs.push_back(sigChTmpTrail);
+       
       }
-    }
+
+      // filter LLT
+      std::sort(sigChs.begin(), sigChs.end(),
+                [] (const JPetSigCh& sigCh1, const JPetSigCh& sigCh2) {
+                  return sigCh1.getValue() < sigCh2.getValue();
+                }
+                );
+
+      std::vector<JPetSigCh> filtered;
+      std::stack<JPetSigCh> S;
+      std::queue<JPetSigCh> Q;
+      
+      for(auto& sc : sigChs){
+
+        if(sc.getType()==JPetSigCh::Leading){
+
+          if(Q.size()==1 && S.size()==1){ //  good LT pair, store it!
+            filtered.push_back(S.top());
+            S.pop();
+            filtered.push_back(Q.front());
+            Q.pop();
+          }
+          
+          if(Q.size()>1){
+            Q = std::queue<JPetSigCh>(); // reset trails queue
+            S = std::stack<JPetSigCh>(); // clear leads stack
+          }
+
+          S.push(sc); // store L
+        }
+        if(sc.getType()==JPetSigCh::Trailing){
+          Q.push(sc);
+
+          if(S.size()>1){
+            S = std::stack<JPetSigCh>(); // clear leads stack
+          }
+          
+        }
+      }
+      
+      if(Q.size()==1 && S.size()==1){ //  good LT pair, store it!
+        filtered.push_back(S.top());
+        S.pop();
+        filtered.push_back(Q.front());
+        Q.pop();
+      }
+
+      // end of filtering
+      
+      getStatistics().getHisto1D("rejected_sigchs")->Fill(0., (double)filtered.size());
+      getStatistics().getHisto1D("rejected_sigchs")->Fill(1., (double)(sigChs.size() - filtered.size()));
+            
+      // Save created Signal Channels
+      for(auto& sc : sigChs){
+        fOutputEvents->add<JPetSigCh>(sc);
+      }
+      
+    } // end loop over TDC channels
+    
     fCurrEventNumber++;
   } else {
     return false;
@@ -206,7 +285,8 @@ JPetSigCh TimeWindowCreator::generateSigCh(
   sigCh.setTRB(channel.getTRB());
   sigCh.setTOMBChannel(channel);
   sigCh.setThreshold(
-    UniversalFileLoader::getConfigurationParameter(fThresholds, channel.getChannel()));
+                     channel.getThreshold()
+                     );
   return sigCh;
 }
 
