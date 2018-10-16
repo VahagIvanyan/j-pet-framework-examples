@@ -54,6 +54,8 @@ protected:
   double fSigChEdgeMaxTime = 5000.0;
   bool fSaveControlHistos = true;
   void initialiseHistograms();
+
+  std::vector<int> thr_order = {0,0,0,0};
 };
 #endif
 /*  !SIGNALFINDER_H */

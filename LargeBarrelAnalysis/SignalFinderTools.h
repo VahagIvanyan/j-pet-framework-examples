@@ -41,7 +41,8 @@ public:
     JPetStatistics& stats,
     double sigChEdgeMaxTime,
     double sigChLeadTrailMaxTime,
-    bool saveHistos
+    bool saveHistos,
+    std::vector<int> thr_order
   );
 
   static std::vector<JPetRawSignal> buildRawSignals(
@@ -50,7 +51,8 @@ public:
     JPetStatistics& stats,
     double sigChEdgeMaxTime,
     double sigChLeadTrailMaxTime,
-    bool saveHistos
+    bool saveHistos,
+    std::vector<int> thr_order
   );
 
   static int findSigChOnNextThr(

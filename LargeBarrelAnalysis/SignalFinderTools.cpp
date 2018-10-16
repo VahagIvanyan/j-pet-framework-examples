@@ -53,7 +53,8 @@ vector<JPetRawSignal> SignalFinderTools::buildAllSignals(
   JPetStatistics& stats,
   double sigChEdgeMaxTime,
   double sigChLeadTrailMaxTime,
-  bool saveHistos)
+  bool saveHistos,
+  std::vector<int> thr_order)
 {
   vector<JPetRawSignal> allSignals;
   for (auto& sigChPair : sigChsPMMap) {
@@ -63,7 +64,8 @@ vector<JPetRawSignal> SignalFinderTools::buildAllSignals(
       stats,
       sigChEdgeMaxTime,
       sigChLeadTrailMaxTime,
-      saveHistos);
+      saveHistos,
+      thr_order);
     allSignals.insert(
       allSignals.end(),
       currentSignals.begin(),
@@ -71,6 +73,8 @@ vector<JPetRawSignal> SignalFinderTools::buildAllSignals(
   }
   return allSignals;
 }
+
+
 
 /**
  * Method reconstructs Raw Signals based on Signal Channels on one PM
@@ -81,7 +85,8 @@ vector<JPetRawSignal> SignalFinderTools::buildRawSignals(
   JPetStatistics& stats,
   double sigChEdgeMaxTime,
   double sigChLeadTrailMaxTime,
-  bool saveHistos)
+  bool saveHistos,
+  std::vector<int> thr_order)
 {
   vector<JPetRawSignal> rawSigVec;
 
@@ -97,9 +102,9 @@ vector<JPetRawSignal> SignalFinderTools::buildRawSignals(
 
   for (const JPetSigCh & sigCh : sigChFromSamePM) {
     if(sigCh.getType() == JPetSigCh::Leading) {
-      thrLeadingSigCh.at(sigCh.getThresholdNumber()-1).push_back(sigCh);
+      thrLeadingSigCh.at(thr_order.at(sigCh.getThresholdNumber()-1)).push_back(sigCh);
     } else if(sigCh.getType() == JPetSigCh::Trailing) {
-      thrTrailingSigCh.at(sigCh.getThresholdNumber()-1).push_back(sigCh);
+      thrTrailingSigCh.at(thr_order.at(sigCh.getThresholdNumber()-1)).push_back(sigCh);
     }
   }
 

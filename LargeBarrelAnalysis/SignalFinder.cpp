@@ -53,6 +53,22 @@ bool SignalFinder::init()
 
   // Creating control histograms
   if(fSaveControlHistos) initialiseHistograms();
+
+  // identify the threshold order
+  std::map<int,int> m;
+  for(auto& tc: getParamBank().getTOMBChannels()){
+    m[(int)(tc.second->getThreshold())] = tc.second->getLocalChannelNumber();
+  }
+
+  int i=0;
+  for(auto& e: m){
+    thr_order[e.second-1] = i++;
+  }
+
+  for(int i=0;i<4;++i){
+    std::cout << thr_order.at(i) << std::endl;
+  }
+  
   return true;
 }
 
@@ -69,7 +85,8 @@ bool SignalFinder::exec()
   // Building signals method invocation
   vector<JPetRawSignal> allSignals = SignalFinderTools::buildAllSignals(
     sigChsPMMap, kNumOfThresholds, getStatistics(),
-    fSigChEdgeMaxTime, fSigChLeadTrailMaxTime, fSaveControlHistos
+    fSigChEdgeMaxTime, fSigChLeadTrailMaxTime, fSaveControlHistos,
+    thr_order
   );
 
   // Saving method invocation
