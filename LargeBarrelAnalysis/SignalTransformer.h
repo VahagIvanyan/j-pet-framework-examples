@@ -42,7 +42,8 @@ public:
 	virtual bool terminate() override;
 
 protected:
-	JPetRecoSignal createRecoSignal(const JPetRawSignal& rawSignal);
-	JPetPhysSignal createPhysSignal(const JPetRecoSignal& signals);
+  JPetRecoSignal createRecoSignal(const JPetRawSignal& rawSignal);
+  JPetPhysSignal createPhysSignal(const JPetRecoSignal& signals, int thrToUse);
+  std::vector<int> thr_order;
 };
 #endif /*  !SIGNALTRANSFORMER_H */

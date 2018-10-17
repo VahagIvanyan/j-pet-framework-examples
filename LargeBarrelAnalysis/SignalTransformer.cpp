@@ -22,6 +22,23 @@ bool SignalTransformer::init()
 {
   INFO("Signal transforming started: Raw to Reco and Phys");
   fOutputEvents = new JPetTimeWindow("JPetPhysSignal");
+
+  // identify the threshold order
+  std::map<int,int> m;
+  for(auto& tc: getParamBank().getTOMBChannels()){
+    m[(int)(tc.second->getThreshold())] = tc.second->getLocalChannelNumber();
+  }
+
+  int i=0;
+  for(auto& e: m){
+    thr_order.push_back(e.second);
+  }
+
+  std::cout << "Order in SignalTransformer" << std::endl;
+  for(int i=0;i<4;++i){
+    std::cout << thr_order.at(i) << std::endl;
+  }
+  
   return true;
 }
 
@@ -34,10 +51,11 @@ bool SignalTransformer::exec()
       // Make Reco Signal from Raw Signal
       auto recoSignal = createRecoSignal(currSignal);
       // Make Phys Signal from Reco Signal and save
-      auto physSignal = createPhysSignal(recoSignal);
+      auto physSignal = createPhysSignal(recoSignal, thr_order.front());
       fOutputEvents->add<JPetPhysSignal>(physSignal);
     }
   }else return false;
+  
   return true;
 }
 
@@ -67,7 +85,7 @@ JPetRecoSignal SignalTransformer::createRecoSignal(const JPetRawSignal& rawSigna
  * This should be changed to something more resonable. Rest of the fields
  * set to -1, quality fields set to 0.
  */
-JPetPhysSignal SignalTransformer::createPhysSignal(const JPetRecoSignal& recoSignal)
+JPetPhysSignal SignalTransformer::createPhysSignal(const JPetRecoSignal& recoSignal, int thrToUse)
 {
   JPetPhysSignal physSignal;
   physSignal.setRecoSignal(recoSignal);
