@@ -37,6 +37,12 @@ bool SignalTransformer::init()
   for(int i=0;i<4;++i){
     std::cout << thr_order.at(i) << std::endl;
   }
+
+  getStatistics().createHistogram(
+                                  new TH1F("thr_mult",
+                                           "threshold value multiplicity in raw signals",
+                                           100, 0., 500.)
+                                  );
   
   return true;
 }
@@ -69,6 +75,13 @@ bool SignalTransformer::terminate()
  */
 JPetRecoSignal SignalTransformer::createRecoSignal(const JPetRawSignal& rawSignal)
 {
+  // fill histo
+  for(auto& p: rawSignal.getTimesVsThresholdValue(JPetSigCh::Leading)){
+    getStatistics().getHisto1D("thr_mult")->Fill(p.second.first);
+  }
+  
+
+  
   JPetRecoSignal recoSignal;
   recoSignal.setRawSignal(rawSignal);
   recoSignal.setAmplitude(-1.0);
