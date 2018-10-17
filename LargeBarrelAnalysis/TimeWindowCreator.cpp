@@ -106,7 +106,7 @@ bool TimeWindowCreator::init()
     }
   }
 
-  // Control histogram
+  // Control histograms
   if (fSaveControlHistos) {
     getStatistics().createHistogram(
       new TH1F("sig_ch_per_time_slot",
@@ -122,6 +122,13 @@ bool TimeWindowCreator::init()
                                              2, -0.5, 1.5)
                                     );
   }
+
+
+  for(int i=1;i<=4;++i){
+    getStatistics().createHistogram( new TH1F(Form("ThresholdMultiplicity_%d_lead_no_llt", i), Form("Threshold %d multiplicity on leading edge before LLT filter", i), 400, 0, 400) );
+    getStatistics().createHistogram( new TH1F(Form("ThresholdMultiplicity_%d_lead_after_llt", i), Form("Threshold %d multiplicity on leading edge after LLT filter", i), 400, 0, 400) );
+  }
+
   return true;
 }
 
@@ -178,7 +185,7 @@ bool TimeWindowCreator::exec()
         sigChTmpLead.setValue(
           1000.*(tdcChannel->GetLeadTime(j)
                  + timeCalib));
-
+        
         sigChs.push_back(sigChTmpLead);
       }
       
@@ -198,6 +205,11 @@ bool TimeWindowCreator::exec()
        
       }
 
+      for(auto& sc: sigChs){
+        getStatistics().getHisto1D(Form("ThresholdMultiplicity_%d_lead_no_llt",
+                                        sc.getTOMBChannel().getLocalChannelNumber()))->Fill(sc.getPM().getID());
+      }
+      
       // filter LLT
       std::sort(sigChs.begin(), sigChs.end(),
                 [] (const JPetSigCh& sigCh1, const JPetSigCh& sigCh2) {
@@ -250,7 +262,10 @@ bool TimeWindowCreator::exec()
       getStatistics().getHisto1D("rejected_sigchs")->Fill(1., (double)(sigChs.size() - filtered.size()));
             
       // Save created Signal Channels
-      for(auto& sc : sigChs){
+      for(auto& sc : filtered){
+        
+        getStatistics().getHisto1D(Form("ThresholdMultiplicity_%d_lead_after_llt",
+                                        sc.getTOMBChannel().getLocalChannelNumber()))->Fill(sc.getPM().getID());
         fOutputEvents->add<JPetSigCh>(sc);
       }
       
