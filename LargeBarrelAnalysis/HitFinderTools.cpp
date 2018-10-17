@@ -143,8 +143,8 @@ JPetHit HitFinderTools::createHit(
   hit.setQualityOfTime(-1.0);
   hit.setTimeDiff(signalB.getTime() - signalA.getTime());
   hit.setQualityOfTimeDiff(-1.0);
-  hit.setEnergy(-1.0);
-  hit.setQualityOfEnergy(-1.0);
+  hit.setEnergy(signalA.getPhe() + signalB.getPhe());
+  hit.setQualityOfEnergy(0.0);
   hit.setScintillator(signalA.getPM().getScin());
   hit.setBarrelSlot(signalA.getPM().getBarrelSlot());
   hit.setPosX(radius * cos(theta));
@@ -188,7 +188,7 @@ void HitFinderTools::checkTheta(const double& theta)
 int HitFinderTools::getProperChannel(const JPetPhysSignal& signal)
 {
   JPetSigCh someSigCh = signal.getRecoSignal().getRawSignal()
-                        .getPoints(JPetSigCh::Leading, JPetRawSignal::ByThrNum)[0];
+                        .getPoints(JPetSigCh::Leading, JPetRawSignal::ByThrValue)[0];
   return someSigCh.getTOMBChannel().getChannel();
 }
 

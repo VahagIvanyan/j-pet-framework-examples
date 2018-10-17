@@ -95,5 +95,33 @@ JPetPhysSignal SignalTransformer::createPhysSignal(const JPetRecoSignal& recoSig
   JPetSigCh::Leading, JPetRawSignal::ByThrNum);
   physSignal.setTime(leadingSigChVec.at(0).getValue());
   physSignal.setQualityOfTime(0.0);
+
+  // calculate TOT
+  std::map<int,double> leadingPoints = recoSignal.getRawSignal().getTimesVsThresholdNumber(JPetSigCh::Leading);
+  std::map<int,double> trailingPoints = recoSignal.getRawSignal()..getTimesVsThresholdNumber(JPetSigCh::Trailing);
+
+  std::vector<double> tots;
+  int threshold_counter = 0;
+  double TOTsum = 0.;
+
+  for(int i=1;i<5;i++){
+    auto leadSearch = leadingPoints.find(i);
+    auto trailSearch = trailingPoints.find(i);
+    if (leadSearch != leadingPoints.end()
+	&& trailSearch != trailingPoints.end()){
+      tots.push_back(trailSearch->second - leadSearch->second);
+      TOTsum += (trailSearch->second - leadSearch->second) / 1000.; // in ns
+      threshold_counter++;
+    }
+  }
+  
+  if(tots.size()!=0){
+    physSignal.setPhe(TOTsum);
+    physSignal.setQualityOfPhe(threshold_counter/4.0);
+  }else{
+    physSignal.setPhe(0.);
+    physSignal.setQualityOfPhe(0.);
+  }
+  
   return physSignal;
 }
