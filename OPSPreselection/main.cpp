@@ -18,7 +18,7 @@
 #include "../LargeBarrelAnalysis/SignalFinder.h"
 #include "../LargeBarrelAnalysis/SignalTransformer.h"
 #include "../LargeBarrelAnalysis/HitFinder.h"
-#include "EventFinder.h"
+#include "../LargeBarrelAnalysis/EventFinder.h"
 using namespace std;
 
 int main(int argc, const char* argv[])

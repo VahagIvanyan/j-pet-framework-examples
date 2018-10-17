@@ -56,6 +56,8 @@ list(APPEND SOURCES ${use_modules_from}/HitFinder.cpp)
 list(APPEND HEADERS ${use_modules_from}/HitFinderTools.h)
 list(APPEND SOURCES ${use_modules_from}/HitFinderTools.cpp)
 #
+list(APPEND HEADERS ${use_modules_from}/EventFinder.h)
+list(APPEND SOURCES ${use_modules_from}/EventFinder.cpp)
 
 include_directories(${Framework_INCLUDE_DIRS})
 add_definitions(${Framework_DEFINITIONS})
