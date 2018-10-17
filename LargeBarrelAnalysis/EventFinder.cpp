@@ -57,6 +57,16 @@ bool EventFinder::init()
       ->GetYaxis()->SetTitle("Number of Hits");
   }
 
+  getStatistics().createHistogram(new TH1F("tot4_3+hits", "Sum of tot-s at 4 thresholds;TOT [ns]", 1000, 0., 100.));
+  getStatistics().createHistogram(new TH1F("tot4_2hits", "Sum of tot-s at 4 thresholds;TOT [ns]", 1000, 0., 100.));
+  getStatistics().createHistogram(new TH1F("tot4_1hits", "Sum of tot-s at 4 thresholds;TOT [ns]", 1000, 0., 100.));
+  getStatistics().createHistogram(new TH1F("tot4_any_hits", "Sum of tot-s at 4 thresholds;TOT [ns]", 1000, 0., 100.));
+	
+  getStatistics().createHistogram(new TH2F("threshold_fraction_3+hits", "Fraction of fired thresholds;side A;side B", 5, -0.125, 1.125, 5, -0.125, 1.125));
+  getStatistics().createHistogram(new TH2F("threshold_fraction_2hits", "Fraction of fired thresholds;side A;side B", 5, -0.125, 1.125, 5, -0.125, 1.125));
+  getStatistics().createHistogram(new TH2F("threshold_fraction_1hits", "Fraction of fired thresholds;side A;side B", 5, -0.125, 1.125, 5, -0.125, 1.125));
+getStatistics().createHistogram(new TH2F("threshold_fraction_any_hits", "Fraction of fired thresholds;side A;side B", 5, -0.125, 1.125, 5, -0.125, 1.125));
+  
   return true;
 }
 
@@ -100,6 +110,9 @@ vector<JPetEvent> EventFinder::buildEvents(const JPetTimeWindow& timeWindow)
       } else break;
     }
     count+=nextCount;
+
+    fillTOThistos(event);
+
     if(event.getHits().size()>=fMinMultiplicity){
       eventVec.push_back(event);
       if(fSaveControlHistos)
@@ -107,4 +120,49 @@ vector<JPetEvent> EventFinder::buildEvents(const JPetTimeWindow& timeWindow)
     }
   }
   return eventVec;
+}
+
+void EventFinder::fillTOThistos(const JPetEvent& event){
+
+  // Filling of histograms
+  for(auto & hit: event.getHits()){
+
+    double tot = hit.getEnergy();
+
+    // fill histos for all events
+    getStatistics().getHisto1D("tot4_any_hits")->Fill(tot);
+    getStatistics().
+      getHisto2D("threshold_fraction_any_hits")->Fill(hit.getSignalA().getQualityOfPhe(),
+                                                      hit.getSignalB().getQualityOfPhe()
+                                                      );
+
+    // fill histos only 1-hit events
+    if(event.getHits().size()==1){
+      getStatistics().getHisto1D("tot4_1hits")->Fill(tot);
+      getStatistics().
+        getHisto2D("threshold_fraction_1hits")->Fill(hit.getSignalA().getQualityOfPhe(),
+                                                     hit.getSignalB().getQualityOfPhe()
+                                                     );
+    }
+    
+    // fill histos only for 2-hit events
+    if(event.getHits().size()==2){
+      getStatistics().getHisto1D("tot4_2hits")->Fill(tot);
+      getStatistics().
+        getHisto2D("threshold_fraction_2hits")->Fill(hit.getSignalA().getQualityOfPhe(),
+                                                     hit.getSignalB().getQualityOfPhe()
+                                                     );
+    }
+    
+    // fill histos for 3+ hits events
+    if(event.getHits().size()>=3){
+      getStatistics().getHisto1D("tot4_3+hits")->Fill(tot);
+      getStatistics().
+        getHisto2D("threshold_fraction_3+hits")->Fill(hit.getSignalA().getQualityOfPhe(),
+						      hit.getSignalB().getQualityOfPhe()
+						      );
+    }
+  }
+  
+
 }
