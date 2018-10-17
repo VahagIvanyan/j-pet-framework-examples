@@ -29,7 +29,6 @@ bool SignalTransformer::init()
     m[(int)(tc.second->getThreshold())] = tc.second->getLocalChannelNumber();
   }
 
-  int i=0;
   for(auto& e: m){
     thr_order.push_back(e.second);
   }
@@ -93,12 +92,12 @@ JPetPhysSignal SignalTransformer::createPhysSignal(const JPetRecoSignal& recoSig
   physSignal.setQualityOfPhe(0.0);
   std::vector<JPetSigCh> leadingSigChVec = recoSignal.getRawSignal().getPoints(
   JPetSigCh::Leading, JPetRawSignal::ByThrNum);
-  physSignal.setTime(leadingSigChVec.at(0).getValue());
+  physSignal.setTime(leadingSigChVec.at(thrToUse).getValue());
   physSignal.setQualityOfTime(0.0);
 
   // calculate TOT
   std::map<int,double> leadingPoints = recoSignal.getRawSignal().getTimesVsThresholdNumber(JPetSigCh::Leading);
-  std::map<int,double> trailingPoints = recoSignal.getRawSignal()..getTimesVsThresholdNumber(JPetSigCh::Trailing);
+  std::map<int,double> trailingPoints = recoSignal.getRawSignal().getTimesVsThresholdNumber(JPetSigCh::Trailing);
 
   std::vector<double> tots;
   int threshold_counter = 0;
