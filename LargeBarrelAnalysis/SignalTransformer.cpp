@@ -90,9 +90,8 @@ JPetPhysSignal SignalTransformer::createPhysSignal(const JPetRecoSignal& recoSig
   physSignal.setRecoSignal(recoSignal);
   physSignal.setPhe(-1.0);
   physSignal.setQualityOfPhe(0.0);
-  std::vector<JPetSigCh> leadingSigChVec = recoSignal.getRawSignal().getPoints(
-  JPetSigCh::Leading, JPetRawSignal::ByThrNum);
-  physSignal.setTime(leadingSigChVec.at(thrToUse).getValue());
+  auto times = recoSignal.getRawSignal().getTimesVsThresholdNumber(JPetSigCh::Leading);
+  physSignal.setTime(times.at(thrToUse));
   physSignal.setQualityOfTime(0.0);
 
   // calculate TOT
