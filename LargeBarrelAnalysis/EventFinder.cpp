@@ -113,10 +113,12 @@ vector<JPetEvent> EventFinder::buildEvents(const JPetTimeWindow& timeWindow)
 
     fillTOThistos(event);
 
+    if(fSaveControlHistos){
+      getStatistics().getHisto1D("hits_per_event")->Fill(event.getHits().size());
+    }
+    
     if(event.getHits().size()>=fMinMultiplicity){
       eventVec.push_back(event);
-      if(fSaveControlHistos)
-        getStatistics().getHisto1D("hits_per_event")->Fill(event.getHits().size());
     }
   }
   return eventVec;
