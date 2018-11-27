@@ -36,7 +36,8 @@ public:
   virtual bool init() override;
   virtual bool exec() override;
   virtual bool terminate() override;
-protected:
+  double calcThetaSum(const std::vector<JPetHit>& hits);
+ protected:
   
 };
 #endif /*  !OPSANALYZER_H */
