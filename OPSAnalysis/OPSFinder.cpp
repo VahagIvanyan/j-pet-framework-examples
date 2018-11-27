@@ -464,7 +464,7 @@ std::vector<JPetEvent> OPSFinder::refineEvents(const JPetTimeWindow& preEvents)
       study1thrHits(event, 4);
       
       // study angles for 3-hit events
-      if( analyseThreeHitEvent(event) ){
+      //      if( analyseThreeHitEvent(event) ){
 
 	fEventCouters[5]++;
 	study1thrHits(event, 5);
@@ -472,7 +472,7 @@ std::vector<JPetEvent> OPSFinder::refineEvents(const JPetTimeWindow& preEvents)
 	getStatistics().getHisto1D("dex_hits_per_final_candidate")->Fill(n_prompt);	
 
 	fOutputEvents->add<JPetEvent>(event);
-      }
+	//      }
     }
     
   }
