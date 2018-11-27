@@ -19,6 +19,7 @@
 #include "../LargeBarrelAnalysis/SignalTransformer.h"
 #include "../LargeBarrelAnalysis/HitFinder.h"
 #include "../LargeBarrelAnalysis/EventFinder.h"
+#include "TOTPlotter.h"
 using namespace std;
 
 int main(int argc, const char* argv[])
@@ -29,13 +30,15 @@ int main(int argc, const char* argv[])
   manager.registerTask<SignalFinder>("SignalFinder"); 
   manager.registerTask<SignalTransformer>("SignalTransformer"); 
   manager.registerTask<HitFinder>("HitFinder");
+  manager.registerTask<TOTPlotter>("TOTPlotter");
   manager.registerTask<EventFinder>("EventFinder");
   
   manager.useTask("TimeWindowCreator", "hld", "tslot.calib");
   manager.useTask("SignalFinder", "tslot.calib", "raw.sig");
   manager.useTask("SignalTransformer", "raw.sig", "phys.sig");
   manager.useTask("HitFinder", "phys.sig", "hits");
-  manager.useTask("EventFinder", "hits", "pre.evt");
+  manager.useTask("TOTPlotter", "hits", "hits.plot");
+  manager.useTask("EventFinder", "hits.plot", "pre.evt");
   
   manager.run(argc, argv);
 }
