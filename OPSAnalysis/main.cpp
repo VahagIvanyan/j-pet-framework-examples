@@ -30,8 +30,8 @@ int main(int argc, const char* argv[])
   manager.registerTask<OPSReconstructor>("OPSReconstructor");
   manager.registerTask<OPSAnalyzer>("OPSAnalyzer");
 
-  manager.useTask("TOTLoader", "pre.evt", "pre.evt.tot");
-  manager.useTask("OPSFinder", "pre.evt.tot", "ops.cand.evt");
+  //  manager.useTask("TOTLoader", "pre.evt", "pre.evt.tot");
+  manager.useTask("OPSFinder", "pre.evt", "ops.cand.evt");
   manager.useTask("OPSReconstructor", "ops.cand.evt", "ops.rec.evt");
   manager.useTask("OPSAnalyzer", "ops.rec.evt", "ops.ana.evt");
   
